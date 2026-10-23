@@ -1,0 +1,657 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/>
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ماجراجویی فاکتورگیری</title>
+
+  <style>
+    /* کد CSS در این قسمت قرار می‌گیرد */
+  </style>
+</head>
+<body>
+
+  <main class="container">
+    <header>
+      <h1>🌈 ماجراجویی فاکتورگیری</h1>
+      <p>پازل‌ها را جور کن و قهرمان ریاضی شو!</p>
+    </header>
+
+    <section id="startPanel" class="panel">
+      <div class="emoji">🧩✨</div>
+      <h2>آماده‌ای برای مسابقه؟</h2>
+      <p>نام و نام خانوادگی خودت را بنویس.</p>
+
+      <form id="startForm">
+        <input
+          id="studentName"
+          type="text"
+          placeholder="نام و نام خانوادگی"
+          maxlength="70"
+          required
+        >
+        <button class="main-btn" type="submit">
+          شروع ماجراجویی 🚀
+        </button>
+      </form>
+
+      <p class="note">
+        ⏰ دو دقیقه فرصت داری تا ۵ جفت را پیدا کنی.
+           </p>
+      <p class="note">
+                   طراح: فاطمه امیرخانلو | گروه ریاضی متوسطه اول استان مازندران
+      </p>
+    </section>
+
+    <section id="gamePanel" class="hidden">
+      <div class="hud">
+        <div class="info" id="playerLabel"></div>
+        <div class="info">⏱️ <span id="timer">۰۰:۰۰</span></div>
+        <div class="info">
+          ⭐ <span id="progress">۰ از ۵</span>
+        </div>
+      </div>
+
+      <div id="puzzleGrid" class="puzzle-grid"></div>
+
+      <p id="hint" class="note">
+        دو کارت را انتخاب کن و عبارت‌های جور را پیدا کن!
+      </p>
+    </section>
+
+    <section id="endPanel" class="panel hidden">
+      <div id="resultEmoji" class="emoji">🎉</div>
+      <h2 id="resultTitle"></h2>
+      <p id="resultMessage"></p>
+      <div id="finalTime"></div>
+
+      <button id="restartBtn" class="main-btn">
+        بازی دوباره 🔄
+      </button>
+
+      <h3>🏆 پنج رکورد برتر</h3>
+      <ol id="records"></ol>
+
+      <p class="note">
+        رکوردها در همین مرورگر ذخیره می‌شوند.
+      </p>
+    </section>
+  </main>
+
+  <script>
+    /* کد JavaScript در این قسمت قرار می‌گیرد */
+  </script>
+
+</body>
+</html><style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Tahoma, Arial, sans-serif;
+  color: #26324b;
+  background: linear-gradient(135deg, #dbeafe, #fce7f3, #fef3c7);
+  text-align: center;
+  transition: background 0.4s;
+}
+
+body.timeout {
+  background: #dc2626;
+}
+
+.container {
+  width: min(950px, 94%);
+  margin: auto;
+  padding: 22px 0 40px;
+}
+
+header h1 {
+  color: #6d28d9;
+  font-size: clamp(25px, 5vw, 38px);
+}
+
+header p {
+  line-height: 1.9;
+}
+
+.panel {
+  max-width: 600px;
+  margin: 25px auto;
+  padding: 25px;
+  border-radius: 25px;
+  background: white;
+  box-shadow: 0 12px 30px #4338ca20;
+}
+
+.emoji {
+  font-size: 48px;
+  margin: 12px;
+}
+
+input {
+  width: 100%;
+  padding: 14px;
+  border: 2px solid #c4b5fd;
+  border-radius: 14px;
+  margin: 12px 0;
+  font: inherit;
+}
+
+.main-btn {
+  width: 100%;
+  border: none;
+  border-radius: 15px;
+  padding: 15px;
+  color: white;
+  background: linear-gradient(90deg, #7c3aed, #ec4899);
+  font: inherit;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.main-btn:hover {
+  transform: translateY(-3px);
+}
+
+.hud {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.info {
+  padding: 12px 15px;
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 4px 12px #00000010;
+  font-weight: bold;
+}
+
+#timer {
+  display: inline-block;
+  direction: ltr;
+  color: #e11d48;
+  font-variant-numeric: tabular-nums;
+}
+
+.puzzle-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.tile {
+  min-width: 0;
+  min-height: 125px;
+  padding: 10px 5px;
+  border: 3px solid transparent;
+  border-radius: 20px;
+  font-family: Arial, Tahoma, sans-serif;
+  font-size: clamp(15px, 2.4vw, 22px);
+  font-weight: bold;
+  direction: ltr;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  box-shadow: 0 5px 0 #00000012;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* رنگ متفاوت برای هر کارت */
+.tile:nth-child(10n + 1) {
+  background: #fecaca;
+  border-color: #f87171;
+}
+
+.tile:nth-child(10n + 2) {
+  background: #bfdbfe;
+  border-color: #60a5fa;
+}
+
+.tile:nth-child(10n + 3) {
+  background: #bbf7d0;
+  border-color: #4ade80;
+}
+
+.tile:nth-child(10n + 4) {
+  background: #fef08a;
+  border-color: #facc15;
+}
+
+.tile:nth-child(10n + 5) {
+  background: #e9d5ff;
+  border-color: #c084fc;
+}
+
+.tile:nth-child(10n + 6) {
+  background: #fbcfe8;
+  border-color: #f472b6;
+}
+
+.tile:nth-child(10n + 7) {
+  background: #a5f3fc;
+  border-color: #22d3ee;
+}
+
+.tile:nth-child(10n + 8) {
+  background: #fed7aa;
+  border-color: #fb923c;
+}
+
+.tile:nth-child(10n + 9) {
+  background: #ddd6fe;
+  border-color: #a78bfa;
+}
+
+.tile:nth-child(10n) {
+  background: #d9f99d;
+  border-color: #a3e635;
+}
+
+.tile:hover:not(.matched) {
+  transform: translateY(-4px) rotate(-1deg);
+}
+
+.tile.selected {
+  outline: 4px solid #4f46e5;
+  outline-offset: 2px;
+  transform: scale(1.04);
+  box-shadow: 0 8px 18px #4f46e540;
+}
+
+.tile.wrong {
+  background: #fecaca;
+  border-color: #dc2626;
+  animation: shake 0.25s;
+}
+
+.tile.matched {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+@keyframes shake {
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+.note {
+  color: #64748b;
+  line-height: 2;
+}
+
+.hidden {
+  display: none !important;
+}
+
+#finalTime {
+  font-size: 36px;
+  font-weight: bold;
+  direction: ltr;
+  margin: 20px;
+  color: #7c3aed;
+}
+
+#records {
+  text-align: right;
+  line-height: 2.2;
+}
+
+body.timeout header h1 {
+  color: white;
+}
+
+body.timeout .panel {
+  background: #fff1f2;
+}
+
+.confetti {
+  position: fixed;
+  top: -25px;
+  z-index: 1000;
+  pointer-events: none;
+  animation: fall linear forwards;
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(110vh) rotate(900deg);
+  }
+}
+
+@media (max-width: 650px) {
+  .puzzle-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tile {
+    min-height: 100px;
+  }
+
+  .hud {
+    justify-content: center;
+  }
+}</style><script>
+const puzzles = [
+  { expression: "2x + 2y", factor: "2(x + y)" },
+  { expression: "3a + 6", factor: "3(a + 2)" },
+  { expression: "4m + 8n", factor: "4(m + 2n)" },
+  { expression: "5x + 15", factor: "5(x + 3)" },
+  { expression: "6p + 12q", factor: "6(p + 2q)" }
+];
+
+const $ = id => document.getElementById(id);
+const LIMIT = 120000;
+
+let student = "";
+let startTime = 0;
+let elapsed = 0;
+let timerInterval = null;
+let selectedCard = null;
+let matchedPairs = 0;
+let locked = false;
+let roundId = 0;
+
+function persianDigits(value) {
+  return String(value).replace(
+    /\d/g,
+    d => "۰۱۲۳۴۵۶۷۸۹"[Number(d)]
+  );
+}
+
+function formatTime(ms) {
+  const total = Math.floor(ms / 1000);
+  const minutes = Math.floor(total / 60);
+  const seconds = total % 60;
+
+  return persianDigits(
+    String(minutes).padStart(2, "0") + ":" +
+    String(seconds).padStart(2, "0")
+  );
+}
+
+function shuffle(array) {
+  const result = [...array];
+
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+
+  return result;
+}
+
+$("startForm").addEventListener("submit", event => {
+  event.preventDefault();
+
+  const name = $("studentName").value.trim();
+
+  if (name) startGame(name);
+});
+
+function startGame(name) {
+  clearInterval(timerInterval);
+  roundId++;
+
+  document.body.classList.remove("timeout");
+
+  student = name;
+  startTime = Date.now();
+  elapsed = 0;
+  selectedCard = null;
+  matchedPairs = 0;
+  locked = false;
+
+  $("playerLabel").textContent = "👩‍🎓 " + student;
+  $("timer").textContent = formatTime(0);
+  $("progress").textContent = "۰ از ۵";
+  $("hint").textContent =
+    "دو کارت را انتخاب کن و جفت درست را پیدا کن!";
+
+  $("startPanel").classList.add("hidden");
+  $("endPanel").classList.add("hidden");
+  $("gamePanel").classList.remove("hidden");
+
+  $("resultEmoji").textContent = "🎉";
+  $("puzzleGrid").innerHTML = "";
+
+  const cards = shuffle(
+    puzzles.flatMap((puzzle, index) => [
+      { text: puzzle.expression, pair: index },
+      { text: puzzle.factor, pair: index }
+    ])
+  );
+
+  cards.forEach((card, index) => {
+    const button = document.createElement("button");
+
+    button.type = "button";
+    button.className = "tile";
+    button.textContent = card.text;
+    button.dataset.pair = card.pair;
+    button.setAttribute("aria-label", "کارت " + (index + 1));
+
+    button.addEventListener("click", () => chooseCard(button));
+
+    $("puzzleGrid").appendChild(button);
+  });
+
+  const thisRound = roundId;
+
+  timerInterval = setInterval(() => {
+    if (thisRound !== roundId) return;
+
+    elapsed = Date.now() - startTime;
+
+    if (elapsed >= LIMIT) {
+      elapsed = LIMIT;
+      $("timer").textContent = formatTime(LIMIT);
+      finish(false);
+      return;
+    }
+
+    $("timer").textContent = formatTime(elapsed);
+  }, 100);
+}
+
+function chooseCard(card) {
+  if (
+    locked ||
+    card.classList.contains("matched") ||
+    card === selectedCard
+  ) {
+    return;
+  }
+
+  card.classList.add("selected");
+
+  if (!selectedCard) {
+    selectedCard = card;
+    return;
+  }
+
+  const first = selectedCard;
+  const second = card;
+
+  selectedCard = null;
+
+  if (first.dataset.pair === second.dataset.pair) {
+    first.classList.remove("selected");
+    second.classList.remove("selected");
+
+    first.classList.add("matched");
+    second.classList.add("matched");
+
+    matchedPairs++;
+
+    $("progress").textContent =
+      persianDigits(matchedPairs + " از ۵");
+
+    if (matchedPairs === 5) {
+      elapsed = Date.now() - startTime;
+
+      if (elapsed >= LIMIT) {
+        elapsed = LIMIT;
+        $("timer").textContent = formatTime(LIMIT);
+        finish(false);
+      } else {
+        $("timer").textContent = formatTime(elapsed);
+        finish(true);
+      }
+    }
+  } else {
+    locked = true;
+
+    first.classList.add("wrong");
+    second.classList.add("wrong");
+
+    setTimeout(() => {
+      first.classList.remove("selected", "wrong");
+      second.classList.remove("selected", "wrong");
+      locked = false;
+    }, 550);
+  }
+}
+
+function getRecords() {
+  try {
+    return JSON.parse(
+      localStorage.getItem("factorPuzzleRecords") || "[]"
+    );
+  } catch (error) {
+    return [];
+  }
+}
+
+function saveRecord(name, time) {
+  const records = getRecords();
+
+  records.push({
+    name: name,
+    time: time,
+    date: new Date().toLocaleDateString("fa-IR")
+  });
+
+  records.sort((a, b) => a.time - b.time);
+
+  try {
+    localStorage.setItem(
+      "factorPuzzleRecords",
+      JSON.stringify(records.slice(0, 5))
+    );
+  } catch (error) {
+    console.warn("ذخیره رکورد امکان‌پذیر نبود.");
+  }
+}
+
+function renderRecords() {
+  const list = $("records");
+  list.innerHTML = "";
+
+  const records = getRecords();
+
+  if (records.length === 0) {
+    const li = document.createElement("li");
+    li.textContent = "هنوز رکوردی ثبت نشده است.";
+    list.appendChild(li);
+    return;
+  }
+
+  records.forEach(record => {
+    const li = document.createElement("li");
+
+    li.textContent =
+      record.name + " -- " +
+      formatTime(record.time) + " -- " +
+      record.date;
+
+    list.appendChild(li);
+  });
+}
+
+function createConfetti() {
+  const colors = [
+    "#ef4444", "#f59e0b", "#10b981",
+    "#3b82f6", "#8b5cf6", "#ec4899",
+    "#14b8a6", "#facc15", "#fb923c"
+  ];
+
+  for (let i = 0; i < 200; i++) {
+    const piece = document.createElement("div");
+
+    piece.className = "confetti";
+    piece.style.left = Math.random() * 100 + "vw";
+    piece.style.backgroundColor =
+      colors[Math.floor(Math.random() * colors.length)];
+
+    piece.style.width = 6 + Math.random() * 9 + "px";
+    piece.style.height = 10 + Math.random() * 15 + "px";
+
+    piece.style.animationDuration =
+      2.5 + Math.random() * 3.5 + "s";
+
+    piece.style.animationDelay =
+      Math.random() * 1.2 + "s";
+
+    document.body.appendChild(piece);
+
+    setTimeout(() => piece.remove(), 7500);
+  }
+}
+
+function finish(won) {
+  clearInterval(timerInterval);
+  timerInterval = null;
+  locked = true;
+
+  $("gamePanel").classList.add("hidden");
+  $("endPanel").classList.remove("hidden");
+
+  if (won) {
+    document.body.classList.remove("timeout");
+
+    $("resultEmoji").textContent = "🏆🎉";
+    $("resultTitle").textContent =
+      "آفرین! تو قهرمان فاکتورگیری شدی!";
+
+    $("resultMessage").textContent =
+      student + "، همه جفت‌ها را درست پیدا کردی!";
+
+    $("finalTime").textContent = formatTime(elapsed);
+
+    saveRecord(student, elapsed);
+    createConfetti();
+  } else {
+    document.body.classList.add("timeout");
+
+    $("resultEmoji").textContent = "⏰";
+    $("resultTitle").textContent = "زمان تمام شد!";
+
+    $("resultMessage").textContent =
+      student + "، دوباره تلاش کن و رکورد بهتری بساز.";
+
+    $("finalTime").textContent = "۰۲:۰۰";
+  }
+
+  renderRecords();
+}
+
+$("restartBtn").addEventListener("click", () => {
+  clearInterval(timerInterval);
+  roundId++;
+
+  document.body.classList.remove("timeout");
+
+  $("endPanel").classList.add("hidden");
+  $("gamePanel").classList.add("hidden");
+  $("startPanel").classList.remove("hidden");
+
+  $("studentName").value = student;
+  $("studentName").focus();
+});</script>
